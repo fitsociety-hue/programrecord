@@ -53,6 +53,8 @@ function doPost(e) {
       result = loginUser(data.name, data.team, data.password);
     } else if (action === 'submit_log') {
       result = submitLog(data);
+    } else if (action === 'signup') {
+      result = signupUser(data.name, data.team, data.position, data.password);
     } else if (action === 'upload_users') {
       result = uploadUsers(data.users);
     } else {
@@ -95,6 +97,27 @@ function loginUser(name, team, password) {
     }
   }
   throw new Error('Login failed: Invalid credentials');
+}
+
+function signupUser(name, team, position, password) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.STAFF);
+  const data = sheet.getDataRange().getValues();
+
+  // Check for duplicate (same name + same team)
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] == name && data[i][2] == team) {
+      throw new Error('이미 등록된 사용자입니다: ' + name + ' (' + team + ')');
+    }
+  }
+
+  // Generate ID
+  const newId = 'S_' + (data.length);
+  const joinDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+
+  // Append: ID, Name, Team, Position, JoinDate, Status, Password
+  sheet.appendRow([newId, name, team, position, joinDate, '재직', password]);
+
+  return { message: '가입 완료' };
 }
 
 function getProgramsForStaff(staffName) {

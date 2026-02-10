@@ -19,20 +19,77 @@
         }
     </script>
     <style>
-        /* Custom Styles for Mobile Optimization */
+        /* === GLASSMORPHISM BASE === */
+        body {
+            background: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative gradient blobs for glass effect */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        body::before {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            top: -80px;
+            left: -60px;
+        }
+
+        body::after {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #34d399, #60a5fa);
+            bottom: -100px;
+            right: -80px;
+        }
+
+        /* Glass Card */
+        .glass {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+        }
+
+        /* Glass Card (darker variant for modals) */
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+        }
+
+        /* Buttons */
+        .btn-glass {
+            transition: all 0.2s ease;
+        }
+
+        .btn-glass:active {
+            transform: scale(0.97);
+        }
+
+        /* Custom Tailwind overrides */
         .btn-large {
             @apply w-full py-4 rounded-xl text-lg font-semibold shadow-md transition transform active:scale-95;
         }
 
-        .card {
-            @apply bg-white p-6 rounded-2xl shadow-lg border border-gray-100;
-        }
-
         .input-field {
-            @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none;
+            @apply w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none bg-white/60 backdrop-blur-sm;
         }
 
-        /* Hide scrollbar for clean UI */
+        /* Hide scrollbar */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -41,61 +98,155 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Subtle float animation for decorative elements */
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .float-anim {
+            animation: float 6s ease-in-out infinite;
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen">
+<body class="text-gray-800 font-sans antialiased min-h-screen">
+
+    <!-- Extra decorative blobs -->
+    <div
+        class="fixed top-1/3 right-0 w-64 h-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 opacity-30 blur-3xl -z-10 float-anim">
+    </div>
+    <div class="fixed bottom-1/4 left-0 w-48 h-48 rounded-full bg-gradient-to-br from-emerald-200 to-cyan-200 opacity-30 blur-3xl -z-10 float-anim"
+        style="animation-delay: -3s;"></div>
 
     <!-- Loading Overlay -->
-    <div id="loading" class="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center hidden">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-primary"></div>
+    <div id="loading" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="flex flex-col items-center space-y-3">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+            <span class="text-sm text-gray-500">처리 중...</span>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden">
+        <div
+            class="glass-strong px-6 py-3 rounded-xl shadow-lg text-sm font-medium text-gray-700 flex items-center space-x-2">
+            <span id="toast-icon">✓</span>
+            <span id="toast-msg">완료</span>
+        </div>
     </div>
 
     <!-- Container -->
     <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
 
-        <!-- LOGIN SCREEN -->
+        <!-- ==================== LOGIN SCREEN ==================== -->
         <div id="login-screen" class="flex-1 flex flex-col justify-center p-6 space-y-6">
             <div class="text-center">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">사업 실적 입력</h1>
-                <p class="text-gray-500">담당자 정보를 입력해주세요</p>
+                <div class="text-5xl mb-3 float-anim">📊</div>
+                <h1 class="text-3xl font-extrabold text-gray-900 mb-1">사업 실적 입력</h1>
+                <p class="text-gray-500 text-sm">담당자 정보를 입력해주세요</p>
             </div>
 
-            <div class="card space-y-4">
+            <div class="glass rounded-2xl p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">이름</label>
                     <input type="text" id="login-name" class="input-field" placeholder="홍길동">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">팀명</label>
-                    <select id="login-team" class="input-field bg-white">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">팀명</label>
+                    <select id="login-team" class="input-field">
                         <option value="건강문화팀">건강문화팀</option>
-                        <option value="사례관리팀">사례관리팀</option>
-                        <option value="지역조직팀">지역조직팀</option>
+                        <option value="지역복지팀">지역복지팀</option>
+                        <option value="맞춤지원팀">맞춤지원팀</option>
+                        <option value="성장지원팀">성장지원팀</option>
+                        <option value="전략기획팀">전략기획팀</option>
+                        <option value="미래경영팀">미래경영팀</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">비밀번호</label>
                     <input type="password" id="login-password" class="input-field" placeholder="••••">
                 </div>
-                <button onclick="handleLogin()" class="btn-large bg-primary text-white hover:bg-blue-600 mt-4">
+                <button onclick="handleLogin()"
+                    class="btn-large bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 mt-2 btn-glass">
                     로그인
                 </button>
+                <p class="text-center text-sm text-gray-500">
+                    계정이 없으신가요? <a href="#" onclick="toggleScreen('signup-screen')"
+                        class="text-blue-500 font-semibold hover:underline">회원가입</a>
+                </p>
             </div>
         </div>
 
-        <!-- DASHBOARD SCREEN -->
+        <!-- ==================== SIGNUP SCREEN ==================== -->
+        <div id="signup-screen" class="hidden flex-1 flex flex-col justify-center p-6 space-y-6">
+            <div class="text-center">
+                <div class="text-5xl mb-3 float-anim">✍️</div>
+                <h1 class="text-3xl font-extrabold text-gray-900 mb-1">회원가입</h1>
+                <p class="text-gray-500 text-sm">새 계정을 등록합니다</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">이름</label>
+                    <input type="text" id="signup-name" class="input-field" placeholder="홍길동">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">팀명</label>
+                    <select id="signup-team" class="input-field">
+                        <option value="건강문화팀">건강문화팀</option>
+                        <option value="지역복지팀">지역복지팀</option>
+                        <option value="맞춤지원팀">맞춤지원팀</option>
+                        <option value="성장지원팀">성장지원팀</option>
+                        <option value="전략기획팀">전략기획팀</option>
+                        <option value="미래경영팀">미래경영팀</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">직급</label>
+                    <input type="text" id="signup-position" class="input-field" placeholder="사회복지사">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">비밀번호</label>
+                    <input type="password" id="signup-password" class="input-field" placeholder="4자리 이상">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">비밀번호
+                        확인</label>
+                    <input type="password" id="signup-password-confirm" class="input-field" placeholder="비밀번호 재입력">
+                </div>
+                <button onclick="handleSignup()"
+                    class="btn-large bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 mt-2 btn-glass">
+                    가입하기
+                </button>
+                <p class="text-center text-sm text-gray-500">
+                    이미 계정이 있나요? <a href="#" onclick="toggleScreen('login-screen')"
+                        class="text-blue-500 font-semibold hover:underline">로그인</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- ==================== DASHBOARD SCREEN ==================== -->
         <div id="dashboard-screen" class="hidden flex-1 flex flex-col">
             <!-- Header -->
-            <header class="bg-white px-6 py-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
+            <header
+                class="glass-strong px-6 py-4 flex justify-between items-center sticky top-0 z-10 border-b border-white/50">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900" id="user-display">홍길동 (건강문화팀)</h2>
-                    <p class="text-xs text-gray-500" id="date-display">2024. 02. 10</p>
+                    <p class="text-xs text-gray-400" id="date-display">2024. 02. 10</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button onclick="toggleAdmin(true)"
-                        class="text-sm text-blue-500 hover:text-blue-700 font-medium">관리</button>
-                    <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+                        class="text-sm text-blue-500 hover:text-blue-700 font-semibold btn-glass">관리</button>
+                    <button onclick="logout()" class="text-sm text-gray-400 hover:text-red-500 btn-glass">로그아웃</button>
                 </div>
             </header>
 
@@ -103,29 +254,28 @@
             <main class="flex-1 p-4 pb-24 space-y-4 overflow-y-auto no-scrollbar">
 
                 <!-- Date Picker -->
-                <div class="card py-3 flex items-center justify-between">
-                    <span class="text-gray-600 font-medium">실적 일자</span>
+                <div class="glass rounded-2xl py-3 px-5 flex items-center justify-between">
+                    <span class="text-gray-600 font-medium text-sm">📅 실적 일자</span>
                     <input type="date" id="record-date"
-                        class="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm">
+                        class="bg-white/50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm backdrop-blur-sm">
                 </div>
 
                 <!-- Program Selection -->
-                <div class="card space-y-2">
-                    <label class="text-sm font-medium text-gray-700">프로그램 선택</label>
-                    <select id="program-select" class="input-field bg-gray-50" onchange="loadProgramData()">
+                <div class="glass rounded-2xl p-5 space-y-2">
+                    <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">프로그램 선택</label>
+                    <select id="program-select" class="input-field" onchange="loadProgramData()">
                         <option value="">프로그램을 선택하세요</option>
-                        <!-- Dynamic Options -->
                     </select>
                 </div>
 
                 <!-- Input Mode Tabs -->
-                <div class="flex space-x-2 bg-gray-200 p-1 rounded-lg">
+                <div class="flex space-x-2 bg-white/40 backdrop-blur-sm p-1 rounded-xl border border-white/60">
                     <button onclick="switchTab('attendance')" id="tab-attendance"
-                        class="flex-1 py-2 rounded-md text-sm font-medium bg-white shadow text-primary transition">
+                        class="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-white shadow-sm text-blue-600 transition btn-glass">
                         출석부 (명단)
                     </button>
                     <button onclick="switchTab('individual')" id="tab-individual"
-                        class="flex-1 py-2 rounded-md text-sm font-medium text-gray-500 hover:bg-gray-100 transition">
+                        class="flex-1 py-2.5 rounded-lg text-sm font-semibold text-gray-500 hover:bg-white/50 transition btn-glass">
                         개별 등록 (직접)
                     </button>
                 </div>
@@ -141,7 +291,6 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-
                     <div id="user-list" class="space-y-2">
                         <!-- Dynamic User Items -->
                     </div>
@@ -149,28 +298,25 @@
 
                 <!-- Individual View -->
                 <div id="view-individual" class="hidden space-y-4">
-                    <div class="card space-y-3">
-                        <label class="block text-sm font-medium text-gray-700">이용자 정보 직접 입력</label>
+                    <div class="glass rounded-2xl p-5 space-y-3">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">이용자 정보 직접
+                            입력</label>
                         <input type="text" id="manual-name" class="input-field" placeholder="이름 (예: 이영희)">
                         <textarea id="manual-note" class="input-field" rows="3" placeholder="활동 내용 / 비고"></textarea>
                         <button onclick="addManualEntry()"
-                            class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">
-                            목록에 추가
+                            class="w-full py-2.5 bg-white/60 backdrop-blur-sm text-gray-700 rounded-xl hover:bg-white/80 font-medium border border-gray-200 btn-glass">
+                            + 목록에 추가
                         </button>
                     </div>
-
-                    <!-- Added Manual List -->
-                    <div id="manual-list" class="space-y-2">
-                        <!-- Pending Manual Entries -->
-                    </div>
+                    <div id="manual-list" class="space-y-2"></div>
                 </div>
 
             </main>
 
             <!-- Bottom Action Bar -->
-            <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 max-w-md mx-auto">
+            <div class="fixed bottom-0 left-0 right-0 p-4 max-w-md mx-auto">
                 <button onclick="submitData()"
-                    class="btn-large bg-secondary text-white hover:bg-green-600 shadow-lg flex items-center justify-center space-x-2">
+                    class="btn-large bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg flex items-center justify-center space-x-2 btn-glass">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -179,29 +325,31 @@
             </div>
         </div>
 
-        <!-- ADMIN MODAL -->
+        <!-- ==================== ADMIN MODAL ==================== -->
         <div id="admin-modal"
-            class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+            <div class="glass-strong rounded-2xl w-full max-w-sm p-6 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold">이용자 명단 관리</h3>
-                    <button onclick="toggleAdmin(false)" class="text-gray-500 hover:text-gray-800">✕</button>
+                    <h3 class="text-xl font-bold text-gray-900">이용자 명단 관리</h3>
+                    <button onclick="toggleAdmin(false)"
+                        class="text-gray-400 hover:text-gray-700 text-xl btn-glass">✕</button>
                 </div>
 
                 <div class="space-y-2">
-                    <h4 class="font-medium text-gray-700">CSV 일괄 업로드</h4>
+                    <h4 class="font-semibold text-gray-700 text-sm">CSV 일괄 업로드</h4>
                     <p class="text-xs text-gray-500">지정된 양식의 CSV 파일을 선택해주세요.</p>
                     <input type="file" id="csv-file" accept=".csv"
                         class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
 
-                <div class="p-3 bg-gray-50 rounded-lg text-xs text-gray-500 space-y-1">
+                <div
+                    class="p-3 bg-white/50 backdrop-blur-sm rounded-xl text-xs text-gray-500 space-y-1 border border-gray-100">
                     <p>CSV 순서: 이름, 생년월일, 성별, 연락처, 장애유형, 장애정도</p>
-                    <a href="#" onclick="downloadTemplate()" class="text-blue-600 underline">템플릿 다운로드</a>
+                    <a href="#" onclick="downloadTemplate()" class="text-blue-600 underline font-medium">📎 템플릿 다운로드</a>
                 </div>
 
                 <button onclick="processCSV()"
-                    class="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-blue-600">
+                    class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-600 btn-glass">
                     업로드 시작
                 </button>
             </div>
@@ -209,21 +357,30 @@
 
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // CONFIGURATION (Replace with your Deploy URL)
+        // CONFIGURATION
         const API_URL = 'https://script.google.com/macros/s/AKfycbx2levf14awF8NTlNt_p90c-zaTTw3WS_m273PsDxUVJS5BtRGe4aZNgYtNzQp1EiLk/exec';
 
         // STATE
         let currentUser = null;
         let programList = [];
-        let allUsers = []; // For Checkbox list
-        let manualEntries = []; // For Individual mode
-        let selectedUserIds = new Set(); // For Checkbox mode
+        let allUsers = [];
+        let manualEntries = [];
+        let selectedUserIds = new Set();
+
+        // --- TOAST ---
+        function showToast(msg, icon = '✓') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').innerText = icon;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
 
         // --- AUTHENTICATION ---
         async function handleLogin() {
-            const name = document.getElementById('login-name').value;
+            const name = document.getElementById('login-name').value.trim();
             const team = document.getElementById('login-team').value;
             const password = document.getElementById('login-password').value;
 
@@ -231,58 +388,81 @@
 
             showLoading(true);
             try {
-                // Mock Login for Demo (Replace with API Call)
-                /*
-                const response = await fetch(API_URL, { 
-                   method: 'POST', 
-                   body: JSON.stringify({ action: 'login', name, team, password }) 
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', name, team, password })
                 });
                 const data = await response.json();
-                */
-
-                // DATA MOCKUP START
-                const data = {
-                    status: 'success', data: {
-                        token: name, role: 'staff',
-                        programs: [
-                            { id: 'P01', name: '미술(디지털)', category: '문화여가' },
-                            { id: 'P02', name: '1:1 맞춤운동', category: '건강증진', type: 'individual' }
-                        ]
-                    }
-                };
-
-                // MOCK USERS for Demo
-                // In production, fetch this from API (action: get_users)
-                /*
-                const usersResponse = await fetch(`${API_URL}?action=get_users&token=${name}`);
-                const usersData = await usersResponse.json();
-                allUsers = usersData.data;
-                */
-
-                allUsers = [
-                    { id: 'U1', name: '홍길동', info: '지체장애' },
-                    { id: 'U2', name: '김철수', info: '발달장애' },
-                    { id: 'U3', name: '이영희', info: '청각장애' }
-                ];
-                // DATA MOCKUP END
 
                 if (data.status === 'success') {
                     currentUser = { name, team, ...data.data };
-                    // Initialize Dashboard
+
+                    // Fetch users list
+                    try {
+                        const usersResp = await fetch(`${API_URL}?action=get_users&token=${name}`);
+                        const usersData = await usersResp.json();
+                        if (usersData.status === 'success') {
+                            allUsers = usersData.data.map(u => ({
+                                id: u.id, name: u.name, info: u.disability || ''
+                            }));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch users, using empty list', e);
+                        allUsers = [];
+                    }
+
                     document.getElementById('user-display').innerText = `${name} (${team})`;
                     document.getElementById('record-date').valueAsDate = new Date();
-                    document.getElementById('date-display').innerText = new Date().toLocaleDateString();
+                    document.getElementById('date-display').innerText = new Date().toLocaleDateString('ko-KR');
 
-                    renderPrograms(currentUser.programs);
+                    renderPrograms(currentUser.programs || []);
                     renderUserList(allUsers);
-
                     toggleScreen('dashboard-screen');
+                    showToast('로그인 성공');
                 } else {
-                    alert('로그인 실패: ' + data.message);
+                    alert('로그인 실패: ' + (data.message || '알 수 없는 오류'));
                 }
             } catch (e) {
                 console.error(e);
-                alert('로그인 중 오류가 발생했습니다.');
+                alert('로그인 중 오류가 발생했습니다.\n' + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // --- SIGNUP ---
+        async function handleSignup() {
+            const name = document.getElementById('signup-name').value.trim();
+            const team = document.getElementById('signup-team').value;
+            const position = document.getElementById('signup-position').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirmPw = document.getElementById('signup-password-confirm').value;
+
+            if (!name || !password) return alert('이름과 비밀번호를 입력해주세요.');
+            if (password !== confirmPw) return alert('비밀번호가 일치하지 않습니다.');
+            if (password.length < 4) return alert('비밀번호는 4자리 이상이어야 합니다.');
+
+            showLoading(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'signup', name, team, position, password })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    showToast('가입 완료! 로그인해주세요.', '🎉');
+                    // Pre-fill login fields
+                    document.getElementById('login-name').value = name;
+                    document.getElementById('login-team').value = team;
+                    document.getElementById('login-password').value = '';
+                    toggleScreen('login-screen');
+                } else {
+                    alert('가입 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('가입 중 오류가 발생했습니다.\n' + e.message);
             } finally {
                 showLoading(false);
             }
@@ -290,7 +470,10 @@
 
         function logout() {
             currentUser = null;
+            selectedUserIds.clear();
+            manualEntries = [];
             toggleScreen('login-screen');
+            showToast('로그아웃 완료', '👋');
         }
 
         // --- ADMIN / CSV LOGIC ---
@@ -302,9 +485,8 @@
 
         function downloadTemplate() {
             const csvContent = "data:text/csv;charset=utf-8,\uFEFF이름,생년월일,성별,연락처,장애유형,장애정도\n홍길동,1990-01-01,남,010-0000-0000,지체,경증";
-            const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
+            link.setAttribute("href", encodeURI(csvContent));
             link.setAttribute("download", "user_template.csv");
             document.body.appendChild(link);
             link.click();
@@ -312,55 +494,31 @@
         }
 
         function processCSV() {
-            const fileInput = document.getElementById('csv-file');
-            const file = fileInput.files[0];
+            const file = document.getElementById('csv-file').files[0];
             if (!file) return alert("파일을 선택해주세요.");
-
             const reader = new FileReader();
-            reader.onload = async function (e) {
-                const text = e.target.result;
-                const rows = text.split("\n");
+            reader.onload = async (e) => {
+                const rows = e.target.result.split("\n");
                 const users = [];
-
-                // Skip header (row 0), start from row 1
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i].split(",");
-                    if (row.length >= 2) { // Minimum check
-                        // Clean data
-                        const cleanRow = row.map(c => c.trim().replace('\r', ''));
-                        if (cleanRow[0]) users.push(cleanRow);
+                    if (row.length >= 2) {
+                        const clean = row.map(c => c.trim().replace('\r', ''));
+                        if (clean[0]) users.push(clean);
                     }
                 }
-
-                if (users.length === 0) return alert("데이터가 없습니다.");
-
+                if (!users.length) return alert("데이터가 없습니다.");
                 if (confirm(`${users.length}명의 이용자를 추가하시겠습니까?`)) {
-                    await uploadUsersToAPI(users);
+                    showLoading(true);
+                    try {
+                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'upload_users', users }) });
+                        showToast(`${users.length}명 업로드 완료`, '📤');
+                        toggleAdmin(false);
+                    } catch (e) { alert("업로드 실패: " + e.message); }
+                    finally { showLoading(false); }
                 }
             };
             reader.readAsText(file);
-        }
-
-        async function uploadUsersToAPI(users) {
-            showLoading(true);
-            try {
-                // Real API Call
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'upload_users',
-                        users: users
-                    })
-                });
-
-                alert("업로드 완료되었습니다.");
-                toggleAdmin(false);
-                // Refresh list if possible (Not implemented in demo logic fully)
-            } catch (e) {
-                alert("업로드 실패: " + e.message);
-            } finally {
-                showLoading(false);
-            }
         }
 
         // --- DASHBOARD LOGIC ---
@@ -376,32 +534,30 @@
             const select = document.getElementById('program-select');
             if (select.selectedIndex <= 0) return;
             const type = select.options[select.selectedIndex].getAttribute('data-type');
-            if (type === 'individual') {
-                switchTab('individual');
-            } else {
-                switchTab('attendance');
-            }
+            switchTab(type === 'individual' ? 'individual' : 'attendance');
         }
 
         function renderUserList(users) {
             const container = document.getElementById('user-list');
             container.innerHTML = '';
+            if (users.length === 0) {
+                container.innerHTML = '<p class="text-center text-sm text-gray-400 py-4">등록된 이용자가 없습니다.</p>';
+                return;
+            }
             users.forEach(u => {
-                const isChecked = selectedUserIds.has(u.id) ? 'checked' : '';
+                const checked = selectedUserIds.has(u.id) ? 'checked' : '';
                 container.innerHTML += `
-                    <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm active:bg-blue-50 cursor-pointer">
-                        <input type="checkbox" value="${u.id}" ${isChecked} onchange="toggleUser('${u.id}')" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                    <label class="flex items-center p-3 glass rounded-xl cursor-pointer active:bg-blue-50/30 transition">
+                        <input type="checkbox" value="${u.id}" ${checked} onchange="toggleUser('${u.id}')" class="w-5 h-5 text-blue-500 rounded border-gray-300 focus:ring-blue-400">
                         <span class="ml-3 flex-1 font-medium text-gray-700">${u.name}</span>
-                        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">${u.info}</span>
-                    </label>
-                `;
+                        <span class="text-xs text-gray-400 bg-white/60 px-2 py-0.5 rounded-full">${u.info}</span>
+                    </label>`;
             });
         }
 
         function filterUsers() {
-            const query = document.getElementById('user-search').value.toLowerCase();
-            const filtered = allUsers.filter(u => u.name.toLowerCase().includes(query));
-            renderUserList(filtered);
+            const q = document.getElementById('user-search').value.toLowerCase();
+            renderUserList(allUsers.filter(u => u.name.toLowerCase().includes(q)));
         }
 
         function toggleUser(id) {
@@ -409,118 +565,91 @@
             else selectedUserIds.add(id);
         }
 
-        // --- INDIVIDUAL ENTRY LOGIC ---
+        // --- INDIVIDUAL ENTRY ---
         function addManualEntry() {
-            const name = document.getElementById('manual-name').value;
-            const note = document.getElementById('manual-note').value;
+            const name = document.getElementById('manual-name').value.trim();
+            const note = document.getElementById('manual-note').value.trim();
             if (!name) return alert('이름을 입력하세요.');
-
-            manualEntries.push({ name, note, id: 'MANUAL_' + Date.now() });
+            manualEntries.push({ name, note, id: 'M_' + Date.now() });
             renderManualList();
-
-            // Clear inputs
             document.getElementById('manual-name').value = '';
             document.getElementById('manual-note').value = '';
         }
 
         function renderManualList() {
-            const container = document.getElementById('manual-list');
-            container.innerHTML = '';
-            manualEntries.forEach((entry, idx) => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div>
-                            <div class="font-medium text-gray-800">${entry.name}</div>
-                            <div class="text-xs text-gray-500">${entry.note || '-'}</div>
-                        </div>
-                        <button onclick="removeManualEntry(${idx})" class="text-red-500 text-sm">삭제</button>
-                    </div>
-                `;
+            const c = document.getElementById('manual-list');
+            c.innerHTML = '';
+            manualEntries.forEach((e, i) => {
+                c.innerHTML += `
+                    <div class="flex justify-between items-center p-3 glass rounded-xl">
+                        <div><div class="font-medium text-gray-800">${e.name}</div><div class="text-xs text-gray-500">${e.note || '-'}</div></div>
+                        <button onclick="removeManualEntry(${i})" class="text-red-400 hover:text-red-600 text-sm btn-glass">삭제</button>
+                    </div>`;
             });
         }
 
-        function removeManualEntry(idx) {
-            manualEntries.splice(idx, 1);
-            renderManualList();
-        }
+        function removeManualEntry(i) { manualEntries.splice(i, 1); renderManualList(); }
 
         // --- SUBMISSION ---
         async function submitData() {
             const programId = document.getElementById('program-select').value;
             const date = document.getElementById('record-date').value;
-
             if (!programId) return alert('프로그램을 선택해주세요.');
 
-            // Collect Data
             const entries = [];
-
-            // 1. Checkbox entries
             selectedUserIds.forEach(id => {
                 const user = allUsers.find(u => u.id === id);
                 if (user) entries.push({ user_name: user.name, status: '출석', note: '' });
             });
+            manualEntries.forEach(m => entries.push({ user_name: m.name, status: '출석', note: m.note }));
 
-            // 2. Manual entries
-            manualEntries.forEach(m => {
-                entries.push({ user_name: m.name, status: '출석', note: m.note });
-            });
-
-            if (entries.length === 0) return alert('입력된 실적이 없습니다.');
-
+            if (!entries.length) return alert('입력된 실적이 없습니다.');
             if (!confirm(`${entries.length}건의 실적을 저장하시겠습니까?`)) return;
 
             showLoading(true);
             try {
-                // Real API Call Code:
                 await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: 'submit_log',
-                        token: currentUser.token,
-                        date: date,
-                        program_name: currentUser.programs.find(p => p.id === programId).name, // Send Name or ID
-                        manager_name: currentUser.name,
-                        entries: entries
+                        action: 'submit_log', token: currentUser.token, date,
+                        program_name: currentUser.programs.find(p => p.id === programId).name,
+                        manager_name: currentUser.name, entries
                     })
                 });
-
-                alert('저장되었습니다.');
-                // Reset
+                showToast(`${entries.length}건 저장 완료`, '✅');
                 selectedUserIds.clear();
                 manualEntries = [];
                 renderUserList(allUsers);
                 renderManualList();
-
-            } catch (e) {
-                alert('저장 실패 (데모 모드/오류): ' + e.message);
-            } finally {
-                showLoading(false);
-            }
+            } catch (e) { alert('저장 실패: ' + e.message); }
+            finally { showLoading(false); }
         }
 
         // --- UTILS ---
         function switchTab(tab) {
-            document.getElementById('view-attendance').classList.add('hidden');
-            document.getElementById('view-individual').classList.add('hidden');
-            document.getElementById('tab-attendance').classList.replace('bg-white', 'text-gray-500'); // Reset style logic simplified
-
-            document.getElementById('view-' + tab).classList.remove('hidden');
-
-            // Allow styling update logic here (simplified for single file)
+            const views = ['attendance', 'individual'];
+            views.forEach(v => {
+                document.getElementById('view-' + v).classList.toggle('hidden', v !== tab);
+                const btn = document.getElementById('tab-' + v);
+                if (v === tab) {
+                    btn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+                    btn.classList.remove('text-gray-500');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+                    btn.classList.add('text-gray-500');
+                }
+            });
         }
 
         function toggleScreen(screenId) {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('dashboard-screen').classList.add('hidden');
-            document.getElementById(screenId).classList.remove('hidden');
+            ['login-screen', 'signup-screen', 'dashboard-screen'].forEach(s => {
+                document.getElementById(s).classList.toggle('hidden', s !== screenId);
+            });
         }
 
         function showLoading(show) {
-            const el = document.getElementById('loading');
-            if (show) el.classList.remove('hidden');
-            else el.classList.add('hidden');
+            document.getElementById('loading').classList.toggle('hidden', !show);
         }
-
     </script>
 </body>
 
