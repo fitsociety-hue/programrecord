@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사업 실적 입력 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles for Mobile Optimization */
+        .btn-large {
+            @apply w-full py-4 rounded-xl text-lg font-semibold shadow-md transition transform active:scale-95;
+        }
+        .card {
+            @apply bg-white p-6 rounded-2xl shadow-lg border border-gray-100;
+        }
+        .input-field {
+            @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none;
+        }
+        /* Hide scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen">
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-primary"></div>
+    </div>
+
+    <!-- Container -->
+    <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
+
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen" class="flex-1 flex flex-col justify-center p-6 space-y-6">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">사업 실적 입력</h1>
+                <p class="text-gray-500">담당자 정보를 입력해주세요</p>
+            </div>
+            
+            <div class="card space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
+                    <input type="text" id="login-name" class="input-field" placeholder="홍길동">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">팀명</label>
+                    <select id="login-team" class="input-field bg-white">
+                        <option value="건강문화팀">건강문화팀</option>
+                        <option value="사례관리팀">사례관리팀</option>
+                        <option value="지역조직팀">지역조직팀</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="••••">
+                </div>
+                <button onclick="handleLogin()" class="btn-large bg-primary text-white hover:bg-blue-600 mt-4">
+                    로그인
+                </button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SCREEN -->
+        <div id="dashboard-screen" class="hidden flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white px-6 py-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900" id="user-display">홍길동 (건강문화팀)</h2>
+                    <p class="text-xs text-gray-500" id="date-display">2024. 02. 10</p>
+                </div>
+                <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 pb-24 space-y-4 overflow-y-auto no-scrollbar">
+                
+                <!-- Date Picker -->
+                <div class="card py-3 flex items-center justify-between">
+                    <span class="text-gray-600 font-medium">실적 일자</span>
+                    <input type="date" id="record-date" class="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm">
+                </div>
+
+                <!-- Program Selection -->
+                <div class="card space-y-2">
+                    <label class="text-sm font-medium text-gray-700">프로그램 선택</label>
+                    <select id="program-select" class="input-field bg-gray-50" onchange="loadProgramData()">
+                        <option value="">프로그램을 선택하세요</option>
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+
+                <!-- Input Mode Tabs -->
+                <div class="flex space-x-2 bg-gray-200 p-1 rounded-lg">
+                    <button onclick="switchTab('attendance')" id="tab-attendance" class="flex-1 py-2 rounded-md text-sm font-medium bg-white shadow text-primary transition">
+                        출석부 (명단)
+                    </button>
+                    <button onclick="switchTab('individual')" id="tab-individual" class="flex-1 py-2 rounded-md text-sm font-medium text-gray-500 hover:bg-gray-100 transition">
+                        개별 등록 (직접)
+                    </button>
+                </div>
+
+                <!-- Attendance View -->
+                <div id="view-attendance" class="space-y-3">
+                    <div class="relative">
+                        <input type="text" id="user-search" placeholder="이용자 검색..." class="input-field pl-10" onkeyup="filterUsers()">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    
+                    <div id="user-list" class="space-y-2">
+                        <!-- Dynamic User Items -->
+                        <!-- Example -->
+                        <!--
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm active:bg-blue-50">
+                            <input type="checkbox" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                            <span class="ml-3 flex-1 font-medium text-gray-700">김철수</span>
+                            <span class="text-xs text-gray-400">발달장애</span>
+                        </label>
+                        -->
+                    </div>
+                </div>
+
+                <!-- Individual View -->
+                <div id="view-individual" class="hidden space-y-4">
+                    <div class="card space-y-3">
+                        <label class="block text-sm font-medium text-gray-700">이용자 정보 직접 입력</label>
+                        <input type="text" id="manual-name" class="input-field" placeholder="이름 (예: 이영희)">
+                        <textarea id="manual-note" class="input-field" rows="3" placeholder="활동 내용 / 비고"></textarea>
+                        <button onclick="addManualEntry()" class="w-full py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">
+                            목록에 추가
+                        </button>
+                    </div>
+
+                    <!-- Added Manual List -->
+                    <div id="manual-list" class="space-y-2">
+                        <!-- Pending Manual Entries -->
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Bottom Action Bar -->
+            <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 max-w-md mx-auto">
+                <button onclick="submitData()" class="btn-large bg-secondary text-white hover:bg-green-600 shadow-lg flex items-center justify-center space-x-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span>실적 저장하기</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // CONFIGURATION (Replace with your Deploy URL)
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+
+        // STATE
+        let currentUser = null;
+        let programList = [];
+        let allUsers = []; // For Checkbox list
+        let manualEntries = []; // For Individual mode
+        let selectedUserIds = new Set(); // For Checkbox mode
+
+        // --- AUTHENTICATION ---
+        async function handleLogin() {
+            const name = document.getElementById('login-name').value;
+            const team = document.getElementById('login-team').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!name || !password) return alert('이름과 비밀번호를 입력해주세요.');
+
+            showLoading(true);
+            try {
+                // Mock Login for Demo (Replace with API Call)
+                // const response = await fetch(API_URL, { 
+                //    method: 'POST', 
+                //    body: JSON.stringify({ action: 'login', name, team, password }) 
+                // });
+                // const data = await response.json();
+                
+                // DATA MOCKUP START
+                const data = { status: 'success', data: { 
+                    token: name, role: 'staff',
+                    programs: [
+                        {id: 'P01', name: '미술(디지털)', category: '문화여가'},
+                        {id: 'P02', name: '1:1 맞춤운동', category: '건강증진', type: 'individual'}
+                    ] 
+                }};
+                
+                // MOCK USERS
+                allUsers = [
+                    {id: 'U1', name: '홍길동', info: '지체장애'},
+                    {id: 'U2', name: '김철수', info: '발달장애'},
+                    {id: 'U3', name: '이영희', info: '청각장애'}
+                ];
+                // DATA MOCKUP END
+
+                if (data.status === 'success') {
+                    currentUser = { name, team, ...data.data };
+                    // Initialize Dashboard
+                    document.getElementById('user-display').innerText = `${name} (${team})`;
+                    document.getElementById('record-date').valueAsDate = new Date();
+                    document.getElementById('date-display').innerText = new Date().toLocaleDateString();
+                    
+                    renderPrograms(currentUser.programs);
+                    renderUserList(allUsers);
+                    
+                    toggleScreen('dashboard-screen');
+                } else {
+                    alert('로그인 실패: ' + data.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('로그인 중 오류가 발생했습니다.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            toggleScreen('login-screen');
+        }
+
+        // --- DASHBOARD LOGIC ---
+        function renderPrograms(programs) {
+            const select = document.getElementById('program-select');
+            select.innerHTML = '<option value="">프로그램을 선택하세요</option>';
+            programs.forEach(p => {
+                select.innerHTML += `<option value="${p.id}" data-type="${p.type}">${p.category} > ${p.name}</option>`;
+            });
+        }
+
+        function loadProgramData() {
+            // Can be used to fetch specific user lists for a program if needed
+            // For now, checks program type to switch tabs if necessary
+            const select = document.getElementById('program-select');
+            const type = select.options[select.selectedIndex].getAttribute('data-type');
+            if (type === 'individual') {
+                switchTab('individual');
+            } else {
+                switchTab('attendance');
+            }
+        }
+
+        function renderUserList(users) {
+            const container = document.getElementById('user-list');
+            container.innerHTML = '';
+            users.forEach(u => {
+                const isChecked = selectedUserIds.has(u.id) ? 'checked' : '';
+                container.innerHTML += `
+                    <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm active:bg-blue-50 cursor-pointer">
+                        <input type="checkbox" value="${u.id}" ${isChecked} onchange="toggleUser('${u.id}')" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
+                        <span class="ml-3 flex-1 font-medium text-gray-700">${u.name}</span>
+                        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">${u.info}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('user-search').value.toLowerCase();
+            const filtered = allUsers.filter(u => u.name.toLowerCase().includes(query));
+            renderUserList(filtered);
+        }
+
+        function toggleUser(id) {
+            if (selectedUserIds.has(id)) selectedUserIds.delete(id);
+            else selectedUserIds.add(id);
+        }
+
+        // --- INDIVIDUAL ENTRY LOGIC ---
+        function addManualEntry() {
+            const name = document.getElementById('manual-name').value;
+            const note = document.getElementById('manual-note').value;
+            if (!name) return alert('이름을 입력하세요.');
+
+            manualEntries.push({ name, note, id: 'MANUAL_' + Date.now() });
+            renderManualList();
+            
+            // Clear inputs
+            document.getElementById('manual-name').value = '';
+            document.getElementById('manual-note').value = '';
+        }
+
+        function renderManualList() {
+            const container = document.getElementById('manual-list');
+            container.innerHTML = '';
+            manualEntries.forEach((entry, idx) => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <div class="font-medium text-gray-800">${entry.name}</div>
+                            <div class="text-xs text-gray-500">${entry.note || '-'}</div>
+                        </div>
+                        <button onclick="removeManualEntry(${idx})" class="text-red-500 text-sm">삭제</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeManualEntry(idx) {
+            manualEntries.splice(idx, 1);
+            renderManualList();
+        }
+
+        // --- SUBMISSION ---
+        async function submitData() {
+            const programId = document.getElementById('program-select').value;
+            const date = document.getElementById('record-date').value;
+
+            if (!programId) return alert('프로그램을 선택해주세요.');
+
+            // Collect Data
+            const entries = [];
+            
+            // 1. Checkbox entries
+            selectedUserIds.forEach(id => {
+                const user = allUsers.find(u => u.id === id);
+                if (user) entries.push({ user_name: user.name, status: '출석', note: '' });
+            });
+
+            // 2. Manual entries
+            manualEntries.forEach(m => {
+                entries.push({ user_name: m.name, status: '출석', note: m.note });
+            });
+
+            if (entries.length === 0) return alert('입력된 실적이 없습니다.');
+
+            if (!confirm(`${entries.length}건의 실적을 저장하시겠습니까?`)) return;
+
+            showLoading(true);
+            try {
+                // Mock API Call
+                console.log('Submitting:', { programId, date, entries });
+                
+                // Real API Call Code:
+                /*
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'submit_log',
+                        token: currentUser.token,
+                        date: date,
+                        program_name: currentUser.programs.find(p => p.id === programId).name, // Send Name or ID
+                        manager_name: currentUser.name,
+                        entries: entries
+                    })
+                });
+                */
+
+                // Simulate success
+                setTimeout(() => {
+                    alert('저장되었습니다.');
+                    // Reset
+                    selectedUserIds.clear();
+                    manualEntries = [];
+                    renderUserList(allUsers);
+                    renderManualList();
+                    showLoading(false);
+                }, 1000);
+
+            } catch (e) {
+                alert('저장 실패: ' + e.message);
+                showLoading(false);
+            }
+        }
+
+        // --- UTILS ---
+        function switchTab(tab) {
+            document.getElementById('view-attendance').classList.add('hidden');
+            document.getElementById('view-individual').classList.add('hidden');
+            document.getElementById('tab-attendance').classList.replace('bg-white', 'text-gray-500'); // Reset style logic simplified
+            
+            document.getElementById('view-' + tab).classList.remove('hidden');
+            
+            // Allow styling update logic here (simplified for single file)
+        }
+
+        function toggleScreen(screenId) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showLoading(show) {
+            const el = document.getElementById('loading');
+            if (show) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
