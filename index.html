@@ -92,7 +92,11 @@
                     <h2 class="text-lg font-bold text-gray-900" id="user-display">홍길동 (건강문화팀)</h2>
                     <p class="text-xs text-gray-500" id="date-display">2024. 02. 10</p>
                 </div>
-                <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleAdmin(true)"
+                        class="text-sm text-blue-500 hover:text-blue-700 font-medium">관리</button>
+                    <button onclick="logout()" class="text-sm text-gray-500 hover:text-red-500">로그아웃</button>
+                </div>
             </header>
 
             <!-- Main Content -->
@@ -140,14 +144,6 @@
 
                     <div id="user-list" class="space-y-2">
                         <!-- Dynamic User Items -->
-                        <!-- Example -->
-                        <!--
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm active:bg-blue-50">
-                            <input type="checkbox" class="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary">
-                            <span class="ml-3 flex-1 font-medium text-gray-700">김철수</span>
-                            <span class="text-xs text-gray-400">발달장애</span>
-                        </label>
-                        -->
                     </div>
                 </div>
 
@@ -183,6 +179,34 @@
             </div>
         </div>
 
+        <!-- ADMIN MODAL -->
+        <div id="admin-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold">이용자 명단 관리</h3>
+                    <button onclick="toggleAdmin(false)" class="text-gray-500 hover:text-gray-800">✕</button>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-medium text-gray-700">CSV 일괄 업로드</h4>
+                    <p class="text-xs text-gray-500">지정된 양식의 CSV 파일을 선택해주세요.</p>
+                    <input type="file" id="csv-file" accept=".csv"
+                        class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-lg text-xs text-gray-500 space-y-1">
+                    <p>CSV 순서: 이름, 생년월일, 성별, 연락처, 장애유형, 장애정도</p>
+                    <a href="#" onclick="downloadTemplate()" class="text-blue-600 underline">템플릿 다운로드</a>
+                </div>
+
+                <button onclick="processCSV()"
+                    class="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-blue-600">
+                    업로드 시작
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <!-- JavaScript Logic -->
@@ -208,11 +232,13 @@
             showLoading(true);
             try {
                 // Mock Login for Demo (Replace with API Call)
-                // const response = await fetch(API_URL, { 
-                //    method: 'POST', 
-                //    body: JSON.stringify({ action: 'login', name, team, password }) 
-                // });
-                // const data = await response.json();
+                /*
+                const response = await fetch(API_URL, { 
+                   method: 'POST', 
+                   body: JSON.stringify({ action: 'login', name, team, password }) 
+                });
+                const data = await response.json();
+                */
 
                 // DATA MOCKUP START
                 const data = {
@@ -225,7 +251,14 @@
                     }
                 };
 
-                // MOCK USERS
+                // MOCK USERS for Demo
+                // In production, fetch this from API (action: get_users)
+                /*
+                const usersResponse = await fetch(`${API_URL}?action=get_users&token=${name}`);
+                const usersData = await usersResponse.json();
+                allUsers = usersData.data;
+                */
+
                 allUsers = [
                     { id: 'U1', name: '홍길동', info: '지체장애' },
                     { id: 'U2', name: '김철수', info: '발달장애' },
@@ -260,6 +293,76 @@
             toggleScreen('login-screen');
         }
 
+        // --- ADMIN / CSV LOGIC ---
+        function toggleAdmin(show) {
+            const modal = document.getElementById('admin-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function downloadTemplate() {
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF이름,생년월일,성별,연락처,장애유형,장애정도\n홍길동,1990-01-01,남,010-0000-0000,지체,경증";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "user_template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function processCSV() {
+            const fileInput = document.getElementById('csv-file');
+            const file = fileInput.files[0];
+            if (!file) return alert("파일을 선택해주세요.");
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const text = e.target.result;
+                const rows = text.split("\n");
+                const users = [];
+
+                // Skip header (row 0), start from row 1
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i].split(",");
+                    if (row.length >= 2) { // Minimum check
+                        // Clean data
+                        const cleanRow = row.map(c => c.trim().replace('\r', ''));
+                        if (cleanRow[0]) users.push(cleanRow);
+                    }
+                }
+
+                if (users.length === 0) return alert("데이터가 없습니다.");
+
+                if (confirm(`${users.length}명의 이용자를 추가하시겠습니까?`)) {
+                    await uploadUsersToAPI(users);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function uploadUsersToAPI(users) {
+            showLoading(true);
+            try {
+                // Real API Call
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'upload_users',
+                        users: users
+                    })
+                });
+
+                alert("업로드 완료되었습니다.");
+                toggleAdmin(false);
+                // Refresh list if possible (Not implemented in demo logic fully)
+            } catch (e) {
+                alert("업로드 실패: " + e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
         // --- DASHBOARD LOGIC ---
         function renderPrograms(programs) {
             const select = document.getElementById('program-select');
@@ -270,9 +373,8 @@
         }
 
         function loadProgramData() {
-            // Can be used to fetch specific user lists for a program if needed
-            // For now, checks program type to switch tabs if necessary
             const select = document.getElementById('program-select');
+            if (select.selectedIndex <= 0) return;
             const type = select.options[select.selectedIndex].getAttribute('data-type');
             if (type === 'individual') {
                 switchTab('individual');
@@ -369,11 +471,7 @@
 
             showLoading(true);
             try {
-                // Mock API Call
-                console.log('Submitting:', { programId, date, entries });
-
                 // Real API Call Code:
-                /*
                 await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -385,21 +483,17 @@
                         entries: entries
                     })
                 });
-                */
 
-                // Simulate success
-                setTimeout(() => {
-                    alert('저장되었습니다.');
-                    // Reset
-                    selectedUserIds.clear();
-                    manualEntries = [];
-                    renderUserList(allUsers);
-                    renderManualList();
-                    showLoading(false);
-                }, 1000);
+                alert('저장되었습니다.');
+                // Reset
+                selectedUserIds.clear();
+                manualEntries = [];
+                renderUserList(allUsers);
+                renderManualList();
 
             } catch (e) {
-                alert('저장 실패: ' + e.message);
+                alert('저장 실패 (데모 모드/오류): ' + e.message);
+            } finally {
                 showLoading(false);
             }
         }
