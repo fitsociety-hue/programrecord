@@ -14,8 +14,14 @@ const SHEET_NAMES = {
 };
 
 function doGet(e) {
+  // Safety: handle editor test runs (no event object)
+  if (!e || !e.parameter) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok', message: 'API is running. Use ?action=get_users to fetch data.' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   const action = e.parameter.action;
-  const token = e.parameter.token; // Simple token (e.g., Staff Name for now)
+  const token = e.parameter.token;
 
   let result = {};
 
@@ -37,9 +43,9 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  // Handle cross-origin requests
-  if (!e.postData) {
-     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No post data' }))
+  // Safety: handle editor test runs or missing data
+  if (!e || !e.postData) {
+     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No post data. Send JSON body with action field.' }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
