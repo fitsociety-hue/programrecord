@@ -13,6 +13,31 @@ const SHEET_NAMES = {
   LOGS: 'Performance_DB'
 };
 
+// Headers for auto-created sheets
+const SHEET_HEADERS = {
+  'Staff_DB': ['ID', 'Name', 'Team', 'Position', 'JoinDate', 'Status', 'Password'],
+  'Program_DB': ['ID', 'Category', 'Name', 'Target', 'Type', 'Manager'],
+  'User_DB': ['ID', 'Name', 'Birth', 'Gender', 'Phone', 'DisabilityType', 'DisabilityDegree'],
+  'Performance_DB': ['Timestamp', 'Date', 'Manager', 'Program', 'User', 'Status', 'Note', 'Qty']
+};
+
+/**
+ * Get sheet by name; auto-create with headers if it doesn't exist.
+ */
+function getOrCreateSheet(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    const headers = SHEET_HEADERS[sheetName];
+    if (headers) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    }
+  }
+  return sheet;
+}
+
 function doGet(e) {
   // Safety: handle editor test runs (no event object)
   if (!e || !e.parameter) {
@@ -83,7 +108,7 @@ function getInitData() {
 }
 
 function loginUser(name, team, password) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.STAFF);
+  const sheet = getOrCreateSheet(SHEET_NAMES.STAFF);
   const data = sheet.getDataRange().getValues();
   // Assume Row 1 is header
   // Structure: ID, Name, Team, Position, JoinDate, Status, Password (Column Index 6)
@@ -106,7 +131,7 @@ function loginUser(name, team, password) {
 }
 
 function signupUser(name, team, position, password) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.STAFF);
+  const sheet = getOrCreateSheet(SHEET_NAMES.STAFF);
   const data = sheet.getDataRange().getValues();
 
   // Check for duplicate (same name + same team)
@@ -127,7 +152,7 @@ function signupUser(name, team, position, password) {
 }
 
 function getProgramsForStaff(staffName) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROGRAMS);
+  const sheet = getOrCreateSheet(SHEET_NAMES.PROGRAMS);
   const data = sheet.getDataRange().getValues();
   const programs = [];
   
@@ -148,7 +173,7 @@ function getProgramsForStaff(staffName) {
 }
 
 function getUsers() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+  const sheet = getOrCreateSheet(SHEET_NAMES.USERS);
   const data = sheet.getDataRange().getValues();
   const users = [];
   // Structure: ID, Name, Birth, Gender, Phone, DisType, DisDegree
@@ -165,7 +190,7 @@ function getUsers() {
 }
 
 function submitLog(data) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.LOGS);
+  const sheet = getOrCreateSheet(SHEET_NAMES.LOGS);
   const timestamp = new Date();
   
   // data.entries is array of { user_name, status, note }
@@ -188,7 +213,7 @@ function submitLog(data) {
 }
 
 function uploadUsers(users) {
-   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+   const sheet = getOrCreateSheet(SHEET_NAMES.USERS);
    // Append multiple rows
    // users is array of arrays matching sheet columns (minus ID maybe)
    
