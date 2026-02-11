@@ -167,7 +167,8 @@ function loginUser(name, team, password) {
 /** 회원가입: 중복 확인 후 Staff_DB에 추가 */
 function signupUser(name, team, position, password) {
   if (!name || !password) throw new Error('이름과 비밀번호를 입력해주세요.');
-  if (String(password).length < 4) throw new Error('비밀번호는 4자리 이상이어야 합니다.');
+  const pwStr = String(password);
+  if (pwStr.length < 4) throw new Error('비밀번호는 4자리 이상이어야 합니다.');
 
   const sheet = getOrCreateSheet(SHEET_NAMES.STAFF);
   const data = sheet.getDataRange().getValues();
@@ -183,15 +184,18 @@ function signupUser(name, team, position, password) {
   }
 
   const newId = 'S_' + data.length;
-  const joinDate = formatDate(new Date());
+  const joinDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
   const lastRow = sheet.getLastRow() + 1;
-  const pwStr = String(password);
 
-  // 1) 비밀번호 열(G열) 형식을 텍스트로 먼저 설정
-  sheet.getRange(lastRow, 7).setNumberFormat('@');
-  // 2) 전체 행 데이터 쓰기 (형식이 이미 텍스트이므로 '0741' 유지됨)
-  const newRow = [newId, trimName, trimTeam, String(position || '').trim(), joinDate, '재직', pwStr];
-  sheet.getRange(lastRow, 1, 1, newRow.length).setValues([newRow]);
+  // ① 비밀번호를 제외한 6개 열 먼저 쓰기 (A~F열)
+  const rowData = [newId, trimName, trimTeam, String(position || '').trim(), joinDate, '재직'];
+  sheet.getRange(lastRow, 1, 1, rowData.length).setValues([rowData]);
+
+  // ② 비밀번호(G열)는 반드시 텍스트 형식으로 개별 설정
+  //    setNumberFormat('@') → setValue() 순서로 해야 '0741'이 유지됨
+  const pwCell = sheet.getRange(lastRow, 7);
+  pwCell.setNumberFormat('@');
+  pwCell.setValue(pwStr);
 
   return { message: '가입이 완료되었습니다.' };
 }
