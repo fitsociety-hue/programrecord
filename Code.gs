@@ -56,8 +56,43 @@ function getOrCreateSheet(sheetName) {
     if (headers) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     }
+    // Staff_DB의 Password 열(G열) 전체를 텍스트 형식으로 설정
+    if (sheetName === 'Staff_DB') {
+      sheet.getRange('G:G').setNumberFormat('@');
+    }
   }
   return sheet;
+}
+
+/**
+ * ★ GAS 에디터에서 수동 실행용 ★
+ * 기존 Staff_DB의 Password(G열) 전체를 텍스트 형식으로 변환합니다.
+ * 이미 숫자로 변환된 비밀번호(예: 741)는 수동으로 0741로 수정해야 합니다.
+ */
+function setupPasswordColumn() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Staff_DB');
+  if (!sheet) {
+    Logger.log('Staff_DB 시트가 없습니다.');
+    return;
+  }
+  // G열 전체를 텍스트 형식으로 설정
+  sheet.getRange('G:G').setNumberFormat('@');
+  Logger.log('Staff_DB의 Password(G열)을 텍스트 형식으로 설정했습니다.');
+  
+  // 기존 데이터도 텍스트로 재설정
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    for (let i = 2; i <= lastRow; i++) {
+      const cell = sheet.getRange(i, 7);
+      const val = cell.getValue();
+      if (val !== '' && val !== null) {
+        cell.setNumberFormat('@');
+        cell.setValue(String(val));
+      }
+    }
+    Logger.log('기존 비밀번호 ' + (lastRow - 1) + '건을 텍스트로 변환했습니다.');
+  }
 }
 
 /** JSON 응답 헬퍼 */
