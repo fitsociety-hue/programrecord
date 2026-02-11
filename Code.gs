@@ -184,11 +184,14 @@ function signupUser(name, team, position, password) {
 
   const newId = 'S_' + data.length;
   const joinDate = formatDate(new Date());
-  const newRow = [newId, trimName, trimTeam, String(position || '').trim(), joinDate, '재직', String(password)];
   const lastRow = sheet.getLastRow() + 1;
-  sheet.getRange(lastRow, 1, 1, newRow.length).setValues([newRow]);
-  // 비밀번호 셀(7번째 열)을 텍스트 형식으로 설정하여 앞자리 0 유지
+  const pwStr = String(password);
+
+  // 1) 비밀번호 열(G열) 형식을 텍스트로 먼저 설정
   sheet.getRange(lastRow, 7).setNumberFormat('@');
+  // 2) 전체 행 데이터 쓰기 (형식이 이미 텍스트이므로 '0741' 유지됨)
+  const newRow = [newId, trimName, trimTeam, String(position || '').trim(), joinDate, '재직', pwStr];
+  sheet.getRange(lastRow, 1, 1, newRow.length).setValues([newRow]);
 
   return { message: '가입이 완료되었습니다.' };
 }
