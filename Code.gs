@@ -8,7 +8,7 @@
 // ─── 설정 ───────────────────────────────────────────────
 // ⚠️ 반드시 본인의 Google Sheets ID로 교체하세요!
 // 스프레드시트 URL: https://docs.google.com/spreadsheets/d/여기가_ID/edit
-const SPREADSHEET_ID = '여기에_스프레드시트_ID_입력';
+const SPREADSHEET_ID = '1-PUH4PgC3WvmMDBcMofp9PUV31mdosqHY-zGqQgKDa4';
 
 const SHEET_NAMES = {
   STAFF: 'Staff_DB',
