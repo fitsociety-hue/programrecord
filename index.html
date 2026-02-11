@@ -173,7 +173,8 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">비밀번호</label>
-                    <input type="password" id="login-password" class="input-field" placeholder="••••">
+                    <input type="password" id="login-password" class="input-field" placeholder="••••"
+                        onkeydown="if(event.key==='Enter') handleLogin()">
                 </div>
                 <button onclick="handleLogin()"
                     class="btn-large bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 mt-2 btn-glass">
@@ -221,7 +222,8 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">비밀번호
                         확인</label>
-                    <input type="password" id="signup-password-confirm" class="input-field" placeholder="비밀번호 재입력">
+                    <input type="password" id="signup-password-confirm" class="input-field" placeholder="비밀번호 재입력"
+                        onkeydown="if(event.key==='Enter') handleSignup()">
                 </div>
                 <button onclick="handleSignup()"
                     class="btn-large bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 mt-2 btn-glass">
@@ -364,10 +366,26 @@
 
         // STATE
         let currentUser = null;
-        let programList = [];
         let allUsers = [];
         let manualEntries = [];
         let selectedUserIds = new Set();
+
+        /**
+         * API 호출 래퍼 — GAS 리디렉트 응답 및 네트워크 오류 처리
+         */
+        async function apiCall(url, options = {}) {
+            const resp = await fetch(url, { redirect: 'follow', ...options });
+            const text = await resp.text();
+            try {
+                return JSON.parse(text);
+            } catch {
+                // GAS가 HTML 에러 페이지를 반환한 경우
+                if (text.includes('<!DOCTYPE')) {
+                    throw new Error('서버 응답 오류 — Apps Script 재배포가 필요할 수 있습니다.');
+                }
+                throw new Error('서버 응답을 파싱할 수 없습니다: ' + text.substring(0, 100));
+            }
+        }
 
         // --- TOAST ---
         function showToast(msg, icon = '✓') {
@@ -388,22 +406,20 @@
 
             showLoading(true);
             try {
-                const response = await fetch(API_URL, {
+                const data = await apiCall(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'login', name, team, password })
                 });
-                const data = await response.json();
 
                 if (data.status === 'success') {
                     currentUser = { name, team, ...data.data };
 
                     // Fetch users list
                     try {
-                        const usersResp = await fetch(`${API_URL}?action=get_users&token=${name}`);
-                        const usersData = await usersResp.json();
+                        const usersData = await apiCall(`${API_URL}?action=get_users&token=${name}`);
                         if (usersData.status === 'success') {
-                            allUsers = usersData.data.map(u => ({
-                                id: u.id, name: u.name, info: u.disability || ''
+                            allUsers = (usersData.data || []).map(u => ({
+                                id: u.id || '', name: u.name || '', info: u.disability || ''
                             }));
                         }
                     } catch (e) {
@@ -444,11 +460,10 @@
 
             showLoading(true);
             try {
-                const response = await fetch(API_URL, {
+                const data = await apiCall(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'signup', name, team, position, password })
                 });
-                const data = await response.json();
 
                 if (data.status === 'success') {
                     showToast('가입 완료! 로그인해주세요.', '🎉');
@@ -511,7 +526,7 @@
                 if (confirm(`${users.length}명의 이용자를 추가하시겠습니까?`)) {
                     showLoading(true);
                     try {
-                        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'upload_users', users }) });
+                        await apiCall(API_URL, { method: 'POST', body: JSON.stringify({ action: 'upload_users', users }) });
                         showToast(`${users.length}명 업로드 완료`, '📤');
                         toggleAdmin(false);
                     } catch (e) { alert("업로드 실패: " + e.message); }
@@ -608,11 +623,13 @@
 
             showLoading(true);
             try {
-                await fetch(API_URL, {
+                const prog = currentUser.programs.find(p => p.id === programId);
+                if (!prog) return alert('선택한 프로그램을 찾을 수 없습니다.');
+                await apiCall(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'submit_log', token: currentUser.token, date,
-                        program_name: currentUser.programs.find(p => p.id === programId).name,
+                        program_name: prog.name,
                         manager_name: currentUser.name, entries
                     })
                 });
