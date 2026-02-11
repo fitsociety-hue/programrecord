@@ -181,13 +181,24 @@ function loginUser(name, team, password) {
 
   const trimName = String(name).trim();
   const trimTeam = String(team).trim();
-  const trimPw   = String(password).trim();
+  const inputPw  = String(password).trim();
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    if (String(row[1]).trim() === trimName &&
-        String(row[2]).trim() === trimTeam &&
-        String(row[6]).trim() === trimPw) {
+    if (String(row[1]).trim() !== trimName) continue;
+    if (String(row[2]).trim() !== trimTeam) continue;
+
+    // 비밀번호 비교: Sheets가 '0741'을 741(숫자)로 저장했을 수 있으므로
+    // 문자열 비교와 숫자 비교 모두 시도
+    const storedPw = String(row[6]).trim();
+    if (storedPw === inputPw || storedPw === String(Number(inputPw))) {
+      // 비밀번호 매칭 성공 — 숫자로 저장되어 있으면 텍스트로 복구
+      if (storedPw !== inputPw) {
+        const pwCell = sheet.getRange(i + 1, 7);
+        pwCell.setNumberFormat('@');
+        SpreadsheetApp.flush();
+        pwCell.setValue(inputPw);
+      }
       const programs = getProgramsForStaff(trimName);
       return {
         token: trimName,
@@ -227,9 +238,10 @@ function signupUser(name, team, position, password) {
   sheet.getRange(lastRow, 1, 1, rowData.length).setValues([rowData]);
 
   // ② 비밀번호(G열)는 반드시 텍스트 형식으로 개별 설정
-  //    setNumberFormat('@') → setValue() 순서로 해야 '0741'이 유지됨
   const pwCell = sheet.getRange(lastRow, 7);
   pwCell.setNumberFormat('@');
+  // flush()로 텍스트 형식을 확정한 뒤 값 쓰기 — 이래야 '0741'이 유지됨
+  SpreadsheetApp.flush();
   pwCell.setValue(pwStr);
 
   return { message: '가입이 완료되었습니다.' };
