@@ -6,6 +6,10 @@
  */
 
 // ─── 설정 ───────────────────────────────────────────────
+// ⚠️ 반드시 본인의 Google Sheets ID로 교체하세요!
+// 스프레드시트 URL: https://docs.google.com/spreadsheets/d/여기가_ID/edit
+const SPREADSHEET_ID = '여기에_스프레드시트_ID_입력';
+
 const SHEET_NAMES = {
   STAFF: 'Staff_DB',
   PROGRAMS: 'Program_DB',
@@ -22,10 +26,29 @@ const SHEET_HEADERS = {
 
 // ─── 유틸리티 ────────────────────────────────────────────
 /**
+ * 스프레드시트 객체 가져오기
+ * openById로 먼저 시도, 실패하면 getActiveSpreadsheet 폴백
+ */
+function getSpreadsheet() {
+  try {
+    if (SPREADSHEET_ID && SPREADSHEET_ID !== '여기에_스프레드시트_ID_입력') {
+      return SpreadsheetApp.openById(SPREADSHEET_ID);
+    }
+  } catch (e) {
+    // openById 실패 시 폴백
+  }
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    throw new Error('스프레드시트에 연결할 수 없습니다. SPREADSHEET_ID를 설정해주세요.');
+  }
+  return ss;
+}
+
+/**
  * 시트를 가져오거나, 없으면 헤더와 함께 자동 생성
  */
 function getOrCreateSheet(sheetName) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
